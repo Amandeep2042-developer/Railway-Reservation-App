@@ -5,9 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import reservationsystem.Enum.RoleType;
 import reservationsystem.dto.PassengerRequestDto;
 import reservationsystem.dto.PassengerResponseDto;
+import reservationsystem.entity.AppUser;
 import reservationsystem.entity.Passenger;
 
 import reservationsystem.repository.PassengerRepo;
@@ -85,11 +88,19 @@ public class PassengerServiceImple implements PassengerService {
         return modelMapper.map(appUser, PassengerResponseDto.class);
     }
 
+    @Transactional
     @Override
     public PassengerResponseDto onBoardNewAdmin(PassengerRequestDto passengerRequestDto , Long id) {
+      AppUser appUser = userRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found "));
 
+if(appUser.getRole().contains(RoleType.ADMIN)){
+throw  new IllegalArgumentException("Already an admin");
+}
 
-        return null;
+appUser.getRole().add(RoleType.ADMIN);
+ userRepo.save(appUser);
+
+        return  modelMapper.map(appUser , PassengerResponseDto.class);
     }
 
 }
